@@ -5,5 +5,5 @@ Should download openCV library by yourself (https://opencv.org/releases.html),th
 HyperLPR: https://github.com/zeusees/HyperLPR](https://github.com/zeusees/HyperLPR
 
 
-ScreenShot
+Demo screenshot, click camera preview will start recognizing.
 ![image](https://github.com/sfshine/hyperlpr4Android/screenshot/demo.jpg)
