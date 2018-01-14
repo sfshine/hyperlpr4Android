@@ -6,4 +6,4 @@ HyperLPR: https://github.com/zeusees/HyperLPR](https://github.com/zeusees/HyperL
 
 
 Demo screenshot, click camera preview will start recognizing.
-![image](https://github.com/sfshine/hyperlpr4Android/screenshot/demo.jpg)
+![image](https://github.com/sfshine/hyperlpr4Android//raw/master/screenshot/demo.jpg)
