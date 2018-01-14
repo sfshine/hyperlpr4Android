@@ -1,3 +1,0 @@
-D:/ASTRI/workplace/wenxun/hyperlpr4Android/app/.externalNativeBuild/cmake/debug/armeabi-v7a/CMakeFiles/rebuild_cache.dir
-D:/ASTRI/workplace/wenxun/hyperlpr4Android/app/.externalNativeBuild/cmake/debug/armeabi-v7a/CMakeFiles/hyperlpr.dir
-D:/ASTRI/workplace/wenxun/hyperlpr4Android/app/.externalNativeBuild/cmake/debug/armeabi-v7a/CMakeFiles/edit_cache.dir

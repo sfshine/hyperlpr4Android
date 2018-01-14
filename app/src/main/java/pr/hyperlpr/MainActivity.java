@@ -70,9 +70,9 @@ public class MainActivity extends Activity {
             int height = bmp.getHeight();
             Mat m = new Mat(width, height, CvType.CV_8UC4);
             Utils.bitmapToMat(bmp, m);
-            if(width > 1000 || height > 1000){
-                Size sz = new Size(600,800);
-                Imgproc.resize(m,m,sz);
+            if (width > 1000 || height > 1000) {
+                Size sz = new Size(600, 800);
+                Imgproc.resize(m, m, sz);
             }
             try {
                 String license = DeepCarUtil.SimpleRecognization(m.getNativeObjAddr(), handle);
@@ -82,6 +82,8 @@ public class MainActivity extends Activity {
                 b.putParcelable("bitmap", bmp);
                 msg.what = 1;
                 msg.setData(b);
+
+                Log.d(TAG, "license " + license);
                 mHandler.sendMessage(msg);
             } catch (Exception e) {
                 Log.d(TAG, "exception occured!");
@@ -160,7 +162,7 @@ public class MainActivity extends Activity {
     private void initData() {
         im = (ImageView) findViewById(R.id.imageView);
         et = (EditText) findViewById(R.id.editText);
-        resultbox = (TextView)findViewById(R.id.textResult);
+        resultbox = (TextView) findViewById(R.id.textResult);
         buttonCamera = (ImageButton) findViewById(R.id.buttonCamera);
         buttonFolder = (ImageButton) findViewById(R.id.buttonFolder);
         buttonCamera.setOnClickListener(new View.OnClickListener() {
@@ -273,8 +275,7 @@ public class MainActivity extends Activity {
         DeepAssetUtil.CopyAssets(this, DeepCarUtil.ApplicationDir, sdcarddir);
     }
 
-    public void initRecognizer()
-    {
+    public void initRecognizer() {
         String cascade_filename = sdcarddir + File.separator + DeepCarUtil.cascade_filename;
         String finemapping_prototxt = sdcarddir + File.separator + DeepCarUtil.finemapping_prototxt;
         String finemapping_caffemodel = sdcarddir + File.separator + DeepCarUtil.finemapping_caffemodel;
@@ -284,11 +285,11 @@ public class MainActivity extends Activity {
         String character_caffemodel = sdcarddir + File.separator + DeepCarUtil.character_caffemodel;
         copyFilesFromAssets();
 
-        handle  =  DeepCarUtil.InitPlateRecognizer(
+        handle = DeepCarUtil.InitPlateRecognizer(
                 cascade_filename,
-                finemapping_prototxt,finemapping_caffemodel,
-                segmentation_prototxt,segmentation_caffemodel,
-                character_prototxt,character_caffemodel
+                finemapping_prototxt, finemapping_caffemodel,
+                segmentation_prototxt, segmentation_caffemodel,
+                character_prototxt, character_caffemodel
         );
     }
 }
