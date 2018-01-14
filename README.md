@@ -1,10 +1,6 @@
-# hyperlpr4Android
+Fork from https://github.com/sundyCoder/hyperlpr4Android
+HyperLPR: https://github.com/zeusees/HyperLPR](https://github.com/zeusees/HyperLPR
 
-热烈欢迎感兴趣的朋友，一起加入Android平台的研发。
+Should download openCV library by yourself (https://opencv.org/releases.html),
+then set openCV sdk path in /app/CMakeList.txt L:18
 
-参见 [https://github.com/zeusees/HyperLPR](https://github.com/zeusees/HyperLPR)
-
-
-效果如下:
-
-![](./hyperlpr.jpg)
