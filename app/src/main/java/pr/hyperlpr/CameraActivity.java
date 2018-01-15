@@ -1,13 +1,14 @@
 package pr.hyperlpr;
 
+import android.Manifest;
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -23,6 +24,7 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
+import java.util.List;
 
 import io.fotoapparat.Fotoapparat;
 import io.fotoapparat.photo.BitmapPhoto;
@@ -35,39 +37,85 @@ import io.fotoapparat.view.CameraView;
  */
 
 public class CameraActivity extends Activity {
-    private static final String TAG = "CameraActivity";
+    private static final String TAG = "CameraActivity___";
+    public static final int REQUEST_CODE = 2333;
     private CameraView cameraView;
     private Fotoapparat fotoapparat;
-    private static final String sdcarddir = "/sdcard/" + DeepCarUtil.ApplicationDir;
+    private static final String sdcarddir = "/" + Environment.getExternalStorageDirectory() + "/" + DeepCarUtil.ApplicationDir;
 
     private Handler mHandler = new Handler();
     private long handle;
+
+    /*检查权限*/
+    String[] permissions = new String[]{Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE};//在SDCard中创建与删除文件权限    /**
+    PermissionUtil mPermissionUtil = new PermissionUtil();
+
+    private boolean isCameraStart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
-
         cameraView = (CameraView) findViewById(R.id.camera_view);
-        fotoapparat = Fotoapparat.with(this).into(cameraView).build();
+        fotoapparat = Fotoapparat.with(CameraActivity.this).into(cameraView).build();
         cameraView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                takePicture();
+                if (isCameraStart) takePicture();
             }
         });
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_3_0, this, mLoaderCallback);
-        } else {
-            Log.d(TAG, "OpenCV library found inside package. Using it!");
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-        }
+    protected void onStart() {
+        super.onStart();
+        checkPermissionAndStartCamera();
+    }
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        stopCameraSafety();
+    }
+
+    private void takePicture() {
+        PhotoResult photoResult = fotoapparat.takePicture();
+        photoResult
+                .toBitmap()
+                .whenAvailable(new PendingResult.Callback<BitmapPhoto>() {
+                    @Override
+                    public void onResult(BitmapPhoto result) {
+                        ImageView imageView = (ImageView) findViewById(R.id.result);
+                        Bitmap bitmap = rotate(90, result.bitmap, true);
+                        recognize(bitmap);
+                        imageView.setImageBitmap(bitmap);
+                    }
+                });
+    }
+
+    public void checkPermissionAndStartCamera() {
+        mPermissionUtil.checkPermission(this, REQUEST_CODE, permissions, new PermissionUtil.OnPermissionListener() {
+            @Override
+            public void onSuccess() {
+                Log.d(TAG, "permisson onSuccess ");
+                if (!OpenCVLoader.initDebug()) {
+                    Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+                    OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_3_0, CameraActivity.this, mLoaderCallback);
+                } else {
+                    Log.d(TAG, "OpenCV library found inside package. Using it!");
+                    mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+                }
+                startCameraSafety();
+            }
+
+            @Override
+            public void onFail(List<String> deniedPermissions) {
+                Log.d(TAG, "permisson " + deniedPermissions.toString());
+            }
+        });
     }
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -93,32 +141,6 @@ public class CameraActivity extends Activity {
         }
     };
 
-    private void takePicture() {
-        PhotoResult photoResult = fotoapparat.takePicture();
-        photoResult
-                .toBitmap()
-                .whenAvailable(new PendingResult.Callback<BitmapPhoto>() {
-                    @Override
-                    public void onResult(BitmapPhoto result) {
-                        ImageView imageView = (ImageView) findViewById(R.id.result);
-                        Bitmap bitmap = rotate(90, result.bitmap, true);
-                        recognize(bitmap);
-                        imageView.setImageBitmap(bitmap);
-                    }
-                });
-    }
-
-    public static Bitmap rotate(int angle, Bitmap bitmap, boolean recycleSrc) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(angle);
-        Bitmap resizedBitmap = Bitmap.createBitmap(bitmap, 0, 0,
-                bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-        if (recycleSrc && resizedBitmap != bitmap && bitmap != null && !bitmap.isRecycled()) {
-            bitmap.recycle();
-            bitmap = null;
-        }
-        return resizedBitmap;
-    }
 
     private void recognize(final Bitmap bmp) {
         new Thread(new Runnable() {
@@ -154,20 +176,6 @@ public class CameraActivity extends Activity {
         }).start();
     }
 
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        fotoapparat.start();
-
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        fotoapparat.stop();
-    }
-
     public void initRecognizer() {
         String cascade_filename = sdcarddir + File.separator + DeepCarUtil.cascade_filename;
         String finemapping_prototxt = sdcarddir + File.separator + DeepCarUtil.finemapping_prototxt;
@@ -185,4 +193,39 @@ public class CameraActivity extends Activity {
         );
         Log.i(TAG, "initRecognizer successfully handle = " + handle);
     }
+
+    public static Bitmap rotate(int angle, Bitmap bitmap, boolean recycleSrc) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        Bitmap resizedBitmap = Bitmap.createBitmap(bitmap, 0, 0,
+                bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+        if (recycleSrc && resizedBitmap != bitmap && bitmap != null && !bitmap.isRecycled()) {
+            bitmap.recycle();
+            bitmap = null;
+        }
+        return resizedBitmap;
+    }
+
+
+    private void startCameraSafety() {
+        if (fotoapparat != null && !isCameraStart) {
+            fotoapparat.start();
+            isCameraStart = true;
+
+        }
+    }
+
+    private void stopCameraSafety() {
+        if (fotoapparat != null && isCameraStart) {
+            fotoapparat.stop();
+            isCameraStart = false;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        mPermissionUtil.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
 }
