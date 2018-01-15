@@ -9,6 +9,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -166,7 +167,7 @@ public class CameraActivity extends Activity {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(CameraActivity.this, license, Toast.LENGTH_LONG).show();
+                            Toast.makeText(CameraActivity.this, (TextUtils.isEmpty(license) ? "Sorry, cannot recognize" : license), Toast.LENGTH_LONG).show();
                         }
                     });
                 } catch (Exception e) {
