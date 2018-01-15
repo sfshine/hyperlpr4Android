@@ -13,6 +13,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -54,11 +55,13 @@ public class CameraActivity extends Activity {
     PermissionUtil mPermissionUtil = new PermissionUtil();
 
     private boolean isCameraStart;
+    private TextView tv_recognize_result;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+        tv_recognize_result = (TextView) findViewById(R.id.tv_recognize_result);
         cameraView = (CameraView) findViewById(R.id.camera_view);
         fotoapparat = Fotoapparat.with(CameraActivity.this).into(cameraView).build();
         cameraView.setOnClickListener(new View.OnClickListener() {
@@ -144,6 +147,7 @@ public class CameraActivity extends Activity {
 
 
     private void recognize(final Bitmap bmp) {
+        tv_recognize_result.setText("Recognizing....");
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -167,7 +171,8 @@ public class CameraActivity extends Activity {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(CameraActivity.this, (TextUtils.isEmpty(license) ? "Sorry, cannot recognize" : license), Toast.LENGTH_LONG).show();
+                            tv_recognize_result.setText((TextUtils.isEmpty(license) ? "Sorry, cannot recognize" : license));
+//                            Toast.makeText(CameraActivity.this, (TextUtils.isEmpty(license) ? "Sorry, cannot recognize" : license), Toast.LENGTH_LONG).show();
                         }
                     });
                 } catch (Exception e) {

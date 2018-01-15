@@ -20,6 +20,12 @@
             android:textColor="#F00" />
     </FrameLayout>
 
+    <TextView
+        android:id="@+id/tv_recognize_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No result"
+        android:textColor="#000" />
 
     <ImageView
         android:id="@+id/result"
